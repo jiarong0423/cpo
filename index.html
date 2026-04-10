@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>光通訊產業 AI 供應鏈心智圖 2026</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Space+Mono:wght@700&display=swap');
+
+:root{
+  --bg:#020d1c; --panel-bg:rgba(2,10,22,.97);
+  --b1:#1e3a5f; --b2:#0f2a4a;
+  --us:#3b82f6; --us-t:#93c5fd; --us-f:#06182e;
+  --tw:#22c55e; --tw-t:#86efac; --tw-f:#041408;
+  --nv:#f97316; --nv-t:#fdba74; --nv-f:#180800;
+  --pu:#a78bfa; --pu-t:#c4b5fd;
+  --warn:#fbbf24;
+  --text:#e2e8f0; --muted:#64748b; --dim:#334155;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);
+  font-family:'Noto Sans TC',sans-serif;color:var(--text)}
+
+#bg{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.1}
+#mv{position:fixed;inset:0;z-index:1;cursor:grab;touch-action:none;overflow:visible}
+#mv:active{cursor:grabbing}
+
+/* leaf / spoke transitions */
+.lu{
+  transition:opacity .32s ease, transform .32s cubic-bezier(.4,0,.2,1);
+  transform-box:fill-box;
+}
+.lu.closed{opacity:0;pointer-events:none;transform:translateX(-30px) scale(.88)}
+.lu.open  {opacity:1;pointer-events:all;transform:translateX(0) scale(1)}
+
+.sp{transition:opacity .28s ease}
+.sp.closed{opacity:0}
+.sp.open  {opacity:1}
+
+/* branch hover */
+.bn{cursor:pointer}
+.bn:hover .bn-rect{filter:brightness(1.2)}
+
+/* side panel */
+#panel{
+  position:fixed;top:0;right:0;width:310px;height:100%;
+  background:var(--panel-bg);border-left:.5px solid var(--b1);
+  z-index:50;transform:translateX(100%);
+  transition:transform .3s cubic-bezier(.4,0,.2,1);
+  display:flex;flex-direction:column;
+}
+#panel.on{transform:translateX(0)}
+#ph{padding:18px 18px 14px;border-bottom:.5px solid var(--b1);
+    display:flex;align-items:flex-start;justify-content:space-between}
+#pt{font-size:14px;font-weight:700;flex:1;line-height:1.4;margin-right:10px}
+#pc{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:0;line-height:1}
+#pc:hover{color:var(--text)}
+#pb{padding:14px 18px;overflow-y:auto;flex:1}
+.p-tag{display:inline-block;font-size:9px;padding:2px 8px;border-radius:4px;
+       font-weight:700;margin-bottom:10px;letter-spacing:.04em}
+.p-sub{font-size:11px;color:var(--muted);margin-bottom:14px;line-height:1.6}
+.p-row{display:flex;gap:9px;padding:9px 0;border-bottom:.5px solid rgba(30,58,95,.5);
+       align-items:flex-start;font-size:11.5px}
+.p-row:last-child{border-bottom:none}
+.p-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.p-txt{color:#94a3b8;line-height:1.65}
+.p-txt b{color:var(--text);font-weight:500}
+
+/* ui */
+.ui{position:fixed;z-index:40;font-family:'Noto Sans TC',sans-serif}
+#leg{top:14px;left:14px;background:rgba(2,13,28,.95);border:.5px solid var(--b1);
+     border-radius:10px;padding:11px 15px}
+#leg h3{font-family:'Space Mono',monospace;font-size:9px;color:var(--pu-t);
+        margin-bottom:7px;letter-spacing:.08em}
+.li{display:flex;align-items:center;gap:6px;font-size:10px;color:#94a3b8;margin-bottom:3px}
+.ld{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+#hdr{top:14px;right:14px;text-align:right}
+#hdr h1{font-size:12px;font-weight:700;color:var(--pu-t)}
+#hdr p{font-size:9px;color:#1e3a5f;margin-top:2px}
+
+#btns{bottom:14px;left:50%;transform:translateX(-50%);display:flex;gap:6px}
+.btn{background:rgba(2,13,28,.9);border:.5px solid var(--b1);border-radius:7px;
+     padding:7px 13px;font-size:10.5px;color:var(--muted);cursor:pointer;
+     font-family:'Noto Sans TC',sans-serif;transition:all .2s}
+.btn:hover{border-color:var(--us);color:var(--us-t)}
+.btn.a{background:linear-gradient(135deg,#1d4ed8,#6d28d9);color:#fff;border-color:transparent}
+.btn.a:hover{opacity:.85}
+
+/* reset btn */
+#resetbtn{bottom:14px;left:14px;background:rgba(2,13,28,.9);border:.5px solid var(--b1);
+          border-radius:7px;padding:7px 13px;font-size:10.5px;color:var(--muted);cursor:pointer;
+          font-family:'Noto Sans TC',sans-serif}
+#resetbtn:hover{border-color:var(--pu);color:var(--pu-t)}
+</style>
+</head>
+<body>
+<canvas id="bg"></canvas>
+<svg id="mv"><defs id="df"></defs><g id="wrap"></g></svg>
+
+<div id="panel">
+  <div id="ph"><div id="pt"></div><button id="pc" onclick="closePanel()">×</button></div>
+  <div id="pb"></div>
+</div>
+
+<div class="ui" id="leg">
+  <h3>LEGEND 圖例</h3>
+  <div class="li"><div class="ld" style="background:#3b82f6;box-shadow:0 0 4px #3b82f6"></div>美股 US</div>
+  <div class="li"><div class="ld" style="background:#22c55e;box-shadow:0 0 4px #22c55e"></div>台股 TW</div>
+  <div class="li"><div class="ld" style="background:#f97316;box-shadow:0 0 4px #f97316"></div>Nvidia 入股／綁定</div>
+  <div class="li" style="margin-top:4px;padding-top:4px;border-top:.5px solid #1e2a40">
+    <div class="ld" style="background:#fbbf24;border-radius:2px"></div>⚠ InP/EML 缺貨</div>
+</div>
+
+<div class="ui" id="hdr">
+  <h1>光通訊產業 AI 供應鏈心智圖</h1>
+  <p>美股垂直整合 × 台股上中下游 × 競爭關係 ｜ 2026.04</p>
+</div>
+
+<div class="ui" id="btns">
+  <button class="btn" onclick="expandAll()">▼ 全部展開</button>
+  <button class="btn" onclick="collapseAll()">▲ 全部收合</button>
+  <button class="btn a" onclick="dlSVG()">⬇ 下載 SVG</button>
+</div>
+
+<button class="ui" id="resetbtn" onclick="resetView()">⌂ 重置視圖</button>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════════════
+const DATA = [
+  { label:"上游  材料磊晶", color:"#22c55e", leaves:[
+    {n:"AXT",                s:"InP基板龍頭",     t:"us",
+     d:{sub:"NASDAQ，全球最大InP基板供應商，訂單能見度直達2030年",items:[
+       {k:"核心業務",v:"GaAs、InP半導體晶圓基板製造"},
+       {k:"訂單積壓",v:"在手訂單逾$6,000萬，2026Q1財報優於預期"},
+       {k:"戰略地位",v:"InP磊晶供給最上游，Lumentum/Coherent間接依賴"},
+       {k:"近況",v:"AXT財報超預期，帶動台廠聯亞、全新同步大漲"}]}},
+    {n:"聯亞 3081",          s:"InP磊晶 / 矽光子",t:"tw",
+     d:{sub:"台股OTC，InP磊晶龍頭，矽光子CPO核心受惠",items:[
+       {k:"主要客戶",v:"Coherent 主力InP磊晶採購商，下單動能強勁"},
+       {k:"財務爆發",v:"毛利率飆升至48%（2026Q1），預計賺進一個資本額"},
+       {k:"股價",v:"歷史新高612元，2026漲幅超過100%"},
+       {k:"展望",v:"矽光子架構採用率上升，直接帶動磊晶需求持續增長"}]}},
+    {n:"全新 2455",          s:"GaAs/InP磊晶",    t:"tw",
+     d:{sub:"台股上市，GaAs/InP磊晶代工，MOCVD技術",items:[
+       {k:"技術",v:"MOCVD製程GaAs/InP磊晶"},
+       {k:"擴產計畫",v:"增購5台MOCVD（2027-28年陸續貢獻），產能大幅提升"},
+       {k:"PD受惠",v:"接收端PD需求成長直接受惠"},
+       {k:"股價",v:"2026年漲逾100%，多次漲停板"}]}},
+    {n:"穩懋 3105",          s:"GaAs晶圓代工",    t:"tw",
+     d:{sub:"台股上市，全球最大GaAs晶圓代工廠，轉型AI光通訊",items:[
+       {k:"核心業務",v:"GaAs晶圓代工，VCSEL及PD接收端元件"},
+       {k:"Google TPU",v:"透過Lumentum切入Google TPU供應鏈，PD接收端訂單"},
+       {k:"技術",v:"50G VCSEL量產中，AI光通訊與低軌衛星雙引擎"},
+       {k:"客戶",v:"Broadcom、Murata、Skyworks、Qorvo"},
+       {k:"財務",v:"EPS約4元（2025全年），轉型成效顯著"}]}}
+  ]},
+  { label:"上游  雷射/PD元件", color:"#4ade80", leaves:[
+    {n:"IET 英特磊 4971",    s:"MBE磊晶代工",     t:"tw",
+     d:{sub:"台股上市，MBE技術磊晶代工，與AAOI同技術路線",items:[
+       {k:"技術",v:"MBE（分子束磊晶）製程，業界罕見"},
+       {k:"商業模式",v:"提供磊晶代工服務給光收發模組廠"},
+       {k:"受惠",v:"InP磊晶缺貨環境，代工需求暴增"}]}},
+    {n:"環宇-KY 4991",       s:"PD接收元件",      t:"tw",
+     d:{sub:"台股KY股，InP基板PD光接收元件",items:[
+       {k:"主力",v:"InP基板光二極體（PD）接收元件"},
+       {k:"技術方向",v:"1.6T高速PD 200G/lane開發中"},
+       {k:"受惠",v:"InP磊晶缺貨，各大模組廠PD採購量大增"}]}},
+    {n:"波若威 3163",        s:"光被動元件",      t:"tw",
+     d:{sub:"台股上市，WDM濾波器光被動元件",items:[
+       {k:"主力",v:"WDM波長分波多工器、光學濾波器"},
+       {k:"客戶",v:"NVIDIA供應鏈題材股"},
+       {k:"特性",v:"高彈性短線飆股，EPS波動較大"}]}}
+  ]},
+  { label:"中游美股  光模組三巨頭", color:"#f97316", leaves:[
+    {n:"AAOI",               s:"垂直整合 / LPO領先",t:"nvidia",
+     d:{sub:"Applied Optoelectronics，NASDAQ，全球LPO架構領先者",items:[
+       {k:"垂直整合",v:"InP磊晶→雷射→模組全部自製，MBE技術護城河"},
+       {k:"財務",v:"2025營收$4.56億 +83% YoY，2026目標$10億+"},
+       {k:"Amazon",v:"$40億 10年採購合約已簽訂"},
+       {k:"Microsoft",v:"佔AAOI 44%營收，LPO主要推動者"},
+       {k:"800G",v:"月產9萬支，Texas新廠2026夏開線"},
+       {k:"股價",v:"Nvidia入股消息後5日暴漲近100%"},
+       {k:"⚠風險",v:"LPO 2028後將被CPO取代，長期護城河待觀察"}]}},
+    {n:"Coherent  COHR",     s:"垂直整合全能巨人", t:"nvidia",
+     d:{sub:"NASDAQ，前Finisar+II-VI 2022合併，Nvidia入股$20億",items:[
+       {k:"Nvidia入股",v:"$20億+多年採購承諾至2030（CPO供應保護）"},
+       {k:"合併",v:"Finisar被II-VI收購→更名Coherent 2022（非三家獨立）"},
+       {k:"垂直整合",v:"自有InP/GaAs晶圓廠，材料到模組一條龍"},
+       {k:"市場",v:"800G全球市場領先，客戶：Microsoft、Google"},
+       {k:"台灣",v:"向聯亞採購InP磊晶，下單動能極強"},
+       {k:"技術",v:"1.6T/3.2T模組OFC 2026展示，CPO核心夥伴"}]}},
+    {n:"Lumentum  LITE",     s:"CW雷射 / EML",     t:"nvidia",
+     d:{sub:"NASDAQ，CPO外部雷射光源霸主，Nvidia入股$20億",items:[
+       {k:"Nvidia入股",v:"$20億+採購至2030，鎖定CPO雷射光源供應"},
+       {k:"CW雷射",v:"CPO架構外部光源，Nvidia GTC核心夥伴"},
+       {k:"EML雷射",v:"⚠ 交期已排至2027後，市場供需缺口30%"},
+       {k:"台灣",v:"穩懋供PD接收端，佔Google TPU訂單量兩成"},
+       {k:"展望",v:"9-12月季營收目標$12.5億，18-24月挑戰$20億"},
+       {k:"訂單",v:"2026全年訂單已滿，部分排至2027年"}]}}
+  ]},
+  { label:"中游  矽光子晶片", color:"#60a5fa", leaves:[
+    {n:"Broadcom  AVGO",     s:"矽光子+交換晶片",  t:"us",
+     d:{sub:"NASDAQ，矽光子交換晶片整合霸主",items:[
+       {k:"交換晶片",v:"Tomahawk 5/6 ASIC，資料中心交換機核心"},
+       {k:"矽光子",v:"矽光子整合設計，與交換晶片協同"},
+       {k:"Google",v:"Google ASIC設計服務主要夥伴（TPU/Axion）"},
+       {k:"CPO",v:"博通產品預計2026-27導入CPO架構"}]}},
+    {n:"Marvell  MRVL",      s:"PAM4 DSP晶片",     t:"us",
+     d:{sub:"NASDAQ，高速DSP晶片龍頭",items:[
+       {k:"主力",v:"PAM4 DSP信號處理晶片，800G/1.6T模組核心"},
+       {k:"相干",v:"Colorz II相干收發器，與Acacia並列龍頭"},
+       {k:"LPO影響",v:"LPO移除DSP後，Marvell需求結構轉變"}]}},
+    {n:"Ciena  CIEN",        s:"長距離傳輸系統",   t:"us",
+     d:{sub:"NYSE，長途光網路傳輸系統設備商",items:[
+       {k:"市場",v:"長距離/城域傳輸系統設備"},
+       {k:"產品",v:"400ZR/800ZR相干收發器，DWDM傳輸"},
+       {k:"定位",v:"電信骨幹市場穩健基本盤，非AI資料中心主力"}]}}
+  ]},
+  { label:"中游台股  光模組廠", color:"#22c55e", leaves:[
+    {n:"上詮  3363",         s:"光收發模組",       t:"tw",
+     d:{sub:"台股OTC，台積電供應鏈核心光收發模組廠",items:[
+       {k:"定位",v:"台積電供應鏈光模組廠，技術門檻高"},
+       {k:"客戶",v:"AWS、Google、NVIDIA超大規模業者"},
+       {k:"受惠",v:"InP 1.6T需求直接受惠"},
+       {k:"評級",v:"法人第二階高成長主升股，最具翻倍潛力"}]}},
+    {n:"光聖  6442",         s:"CPO/AOC 王者",     t:"tw",
+     d:{sub:"台股上市，CPO商轉元年最核心受惠，千金股",items:[
+       {k:"主力",v:"AOC主動光纖+CPO共封裝光學核心廠商"},
+       {k:"股價",v:"天價1,345元+（千金股），CPO元年直接受惠"},
+       {k:"AOC",v:"主動光纖需求自2024Q4大幅增加，先行爆發"},
+       {k:"財務",v:"合約負債持續增加，訂單能見度高"}]}},
+    {n:"華星光  4979",       s:"800G光模組",       t:"tw",
+     d:{sub:"台股上市，800G高速光收發模組廠",items:[
+       {k:"主力",v:"800G高速光收發模組生產"},
+       {k:"客戶",v:"NVIDIA供應鏈"},
+       {k:"股價",v:"歷史高價287.5元"},
+       {k:"注意",v:"毛利偏低，需注意盈利品質"}]}},
+    {n:"光環  3234",         s:"光模組/網通",      t:"tw",
+     d:{sub:"台股上市，光模組+網通設備",items:[
+       {k:"業務",v:"光模組+網通設備雙業務"},
+       {k:"特性",v:"題材活躍，EPS波動大，六年多次大漲"},
+       {k:"2025",v:"股價漲幅達52%"}]}},
+    {n:"眾達-KY  4977",     s:"NVIDIA供應鏈",     t:"tw",
+     d:{sub:"台股KY股，NVIDIA直接供應鏈廠商",items:[
+       {k:"定位",v:"NVIDIA直接供應鏈廠商"},
+       {k:"受惠",v:"800G→1.6T放量受惠"},
+       {k:"特性",v:"高彈性飆股，短線波動大"}]}}
+  ]},
+  { label:"中下游  先進封測", color:"#a78bfa", leaves:[
+    {n:"台積電  2330",       s:"CoWoS / COUPE CPO",t:"tw",
+     d:{sub:"台股上市，CPO先進封裝不可取代核心，第一階王者",items:[
+       {k:"封裝",v:"CoWoS-S/R先進封裝，COUPE 2026量產"},
+       {k:"Nvidia",v:"Rubin平台確認，黃仁勳親訪確認矽光子路線"},
+       {k:"地位",v:"外資長期加碼，CPO無可取代"},
+       {k:"規模",v:"CoWoS月產能持續擴充，供不應求"}]}},
+    {n:"聯鈞  3450",         s:"EML COS封裝",      t:"tw",
+     d:{sub:"台股OTC，EML雷射COS封裝核心廠",items:[
+       {k:"主力",v:"EML（電吸收調變雷射）COS封裝，1.6T核心製程"},
+       {k:"指標",v:"合約負債：6.7億→13億→13.8億，客戶提前鎖定"},
+       {k:"受惠",v:"1.6T發射端EML封裝需求直接受惠"},
+       {k:"股價",v:"多次漲停，累計漲幅極大"}]}},
+    {n:"旺矽  6223",         s:"高速光通訊測試",   t:"tw",
+     d:{sub:"台股上市，高速光通訊測試平台，最早感知需求",items:[
+       {k:"業務",v:"高速光通訊測試平台+矽光子檢測治具"},
+       {k:"先行",v:"合約負債2023→6.73億，2024→13億，2025Q3→13.86億"},
+       {k:"特質",v:"最早反映下一代需求轉折的指標廠商"}]}},
+    {n:"日月光  3711",       s:"SiP封裝",          t:"tw",
+     d:{sub:"台股上市，系統級封裝SiP，CPO中階封裝",items:[
+       {k:"業務",v:"系統級封裝（SiP），CPO中階封裝解決方案"},
+       {k:"規模",v:"全球最大OSAT廠，規模優勢明顯"}]}},
+    {n:"大眾控  3701",       s:"Flip chip封裝",    t:"tw",
+     d:{sub:"台股上市，Flip chip封裝，1.6T直接受惠",items:[
+       {k:"業務",v:"Flip chip覆晶封裝"},
+       {k:"受惠",v:"1.6T規格需要flip chip封裝，需求直接受惠"}]}}
+  ]},
+  { label:"下游  終端應用", color:"#e879f9", leaves:[
+    {n:"Nvidia",             s:"GPU叢集互連",      t:"nvidia",
+     d:{sub:"NASDAQ，AI GPU霸主，光通訊戰略投資者",items:[
+       {k:"投資",v:"豪擲$40億入股Lumentum+Coherent各$20億+採購至2030"},
+       {k:"戰略",v:"為CPO提前鎖定供應鏈，GTC大會公開CPO藍圖"},
+       {k:"壟斷",v:"戰略性壟斷EML雷射供應商產能，交期排至2027後"},
+       {k:"需求",v:"800G SR8模組2024年出貨數百萬支，1.6T急速爬升"}]}},
+    {n:"Amazon  AWS",        s:"AAOI $4B合約",     t:"us",
+     d:{sub:"NASDAQ，AAOI最大客戶，$40億十年採購框架",items:[
+       {k:"合約",v:"AAOI $40億10年採購框架，2026已鎖定$2.5億+訂單"},
+       {k:"AI",v:"Trainium/Inferentia叢集需大量800G/1.6T光互連"},
+       {k:"份額",v:"AAOI目標取得AWS 30-40%市場份額"}]}},
+    {n:"Microsoft  Azure",   s:"LPO主推",           t:"us",
+     d:{sub:"NASDAQ，LPO架構最大倡導者，AAOI最大單一客戶",items:[
+       {k:"LPO",v:"大力推廣Linear Pluggable Optics，移除DSP節省大量電費"},
+       {k:"AAOI",v:"佔AAOI 44%營收，最大單一客戶"},
+       {k:"規模",v:"1.6T收發器計劃200萬支，市場規模$30億+"}]}},
+    {n:"Google",             s:"TPU / OCS光路",    t:"us",
+     d:{sub:"NASDAQ，AI光通訊先知，7年前即布局",items:[
+       {k:"先見",v:"7年前告訴業界AI叢集光通訊多於算力本身"},
+       {k:"TPU OCS",v:"光路交換系統，Lumentum供CW雷射+ELSFP光源"},
+       {k:"穩懋",v:"穩懋供PD接收端，佔Lumentum Google TPU訂單兩成"}]}},
+    {n:"智邦  2345",         s:"網通交換機",        t:"tw",
+     d:{sub:"台股上市，網通交換機設備龍頭，CPO下游整合商",items:[
+       {k:"業務",v:"網路交換機設備製造，資料中心核心設備"},
+       {k:"CPO",v:"CPO技術成熟後，交換機整合光引擎，直接受惠"},
+       {k:"地位",v:"第一階核心王者，外資長期加碼"}]}}
+  ]},
+];
+
+// ═══════════════════════════════════════════════════════════════
+// STYLES
+// ═══════════════════════════════════════════════════════════════
+const ST = {
+  us:    {fill:"#06182e",stroke:"#3b82f6",text:"#93c5fd",tag:"美股",   tagBg:"#1e3a8a"},
+  tw:    {fill:"#041408",stroke:"#22c55e",text:"#86efac",tag:"台股",   tagBg:"#14532d"},
+  nvidia:{fill:"#180800",stroke:"#f97316",text:"#fdba74",tag:"🔴 Nvidia",tagBg:"#7c2d12"},
+};
+
+// ═══════════════════════════════════════════════════════════════
+// LAYOUT  — left-to-right tree, no overlaps
+// ═══════════════════════════════════════════════════════════════
+const ROW_H    = 58;   // vertical space per leaf
+const BR_GAP   = 14;   // extra gap between branch groups
+const LF_W     = 156;  // leaf box width
+const LF_H     = 44;   // leaf box height
+const BR_W     = 148;  // branch box width
+const BR_H     = 44;   // branch box height
+const ROOT_W   = 130;
+const ROOT_H   = 90;
+
+const X_ROOT   = 140;   // root center x
+const X_BRANCH = 390;   // branch center x
+const X_LEAF   = 670;   // leaf center x
+
+// Compute branch & leaf y positions
+let yc = 70;
+DATA.forEach(br => {
+  const span = br.leaves.length * ROW_H;
+  br.by = yc + span / 2;                         // branch center y
+  br.leaves.forEach((lf, i) => {
+    lf.ly = yc + ROW_H * i + ROW_H / 2;           // leaf center y
+  });
+  yc += span + BR_GAP;
+  br.open = false;
+});
+const CANVAS_H = yc + 60;
+const ROOT_Y   = CANVAS_H / 2;
+const CANVAS_W = 920;
+
+// ═══════════════════════════════════════════════════════════════
+// SVG SETUP
+// ═══════════════════════════════════════════════════════════════
+const NS  = "http://www.w3.org/2000/svg";
+const svg = document.getElementById("mv");
+const W   = window.innerWidth, H = window.innerHeight;
+svg.setAttribute("width", W);
+svg.setAttribute("height", H);
+
+function mk(tag, a={}) {
+  const e = document.createElementNS(NS, tag);
+  for (const [k,v] of Object.entries(a)) e.setAttribute(k, v);
+  return e;
+}
+function tx(s, a={}) { const e = mk("text",a); e.textContent = s; return e; }
+
+// ── DEFS ──────────────────────────────────────────────────────
+const defs = document.getElementById("df");
+
+// Glow filters
+[["us","7"],["tw","7"],["nvidia","9"],["br","5"],["root","16"],["warn","6"]].forEach(([id,sd]) => {
+  const f = mk("filter",{id:`gf-${id}`,x:"-80%",y:"-80%",width:"260%",height:"260%"});
+  const gb = mk("feGaussianBlur",{stdDeviation:sd,result:"b"});
+  const m = mk("feMerge");
+  m.appendChild(mk("feMergeNode",{in:"b"}));
+  m.appendChild(mk("feMergeNode",{in:"SourceGraphic"}));
+  f.appendChild(gb); f.appendChild(m); defs.appendChild(f);
+});
+
+// Root gradient
+const rg = mk("radialGradient",{id:"rgr",cx:"50%",cy:"50%",r:"50%"});
+[["0%","#3b0764"],["100%","#0a0824"]].forEach(([o,c]) => {
+  const s = mk("stop",{offset:o}); s.setAttribute("stop-color",c); rg.appendChild(s);
+});
+defs.appendChild(rg);
+
+const wrap = document.getElementById("wrap");
+const GL = mk("g"); wrap.appendChild(GL);  // lines
+const GN = mk("g"); wrap.appendChild(GN);  // nodes
+
+// ═══════════════════════════════════════════════════════════════
+// DRAW ROOT
+// ═══════════════════════════════════════════════════════════════
+function curve(x1,y1,x2,y2,color,w,op){
+  const mx = (x1+x2)/2;
+  const p = mk("path",{
+    d:`M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}`,
+    fill:"none", stroke:color, "stroke-width":w, opacity:op
+  });
+  return p;
+}
+
+// Root node
+{
+  const g = mk("g");
+  g.appendChild(mk("circle",{cx:X_ROOT,cy:ROOT_Y,r:66,fill:"none",
+    stroke:"#7c3aed","stroke-width":".5","stroke-dasharray":"5 4",opacity:".35"}));
+  g.appendChild(mk("circle",{cx:X_ROOT,cy:ROOT_Y,r:60,fill:"url(#rgr)",
+    stroke:"#7c3aed","stroke-width":"1.6",filter:"url(#gf-root)"}));
+
+  ["光通訊產業","AI供應鏈","2026"].forEach((t,i) => {
+    g.appendChild(tx(t,{x:X_ROOT,y:ROOT_Y+(i-1)*21+4,
+      "text-anchor":"middle","dominant-baseline":"central",
+      "font-size":i===2?"12":"15","font-weight":"700",
+      "font-family":"Noto Sans TC,sans-serif",
+      fill: i===2 ? "#c4b5fd" : "#f8fafc"}));
+  });
+  GN.appendChild(g);
+}
+
+// Nvidia banner
+{
+  const bw=230, bh=28, bx=X_LEAF+LF_W/2+20, by=50;
+  GN.appendChild(mk("rect",{x:bx,y:by,width:bw,height:bh,rx:7,
+    fill:"#180800",stroke:"#f97316","stroke-width":"1",filter:"url(#gf-nvidia)"}));
+  GN.appendChild(tx("⚡ Nvidia 豪擲 $40億 卡位光通訊供應鏈",{
+    x:bx+bw/2,y:by+bh/2+1,"text-anchor":"middle","dominant-baseline":"central",
+    "font-size":"11","font-family":"Noto Sans TC,sans-serif",
+    fill:"#fdba74","font-weight":"600"}));
+}
+
+// InP warning
+{
+  const bw=210, bh=27, bx=X_LEAF+LF_W/2+20, by=CANVAS_H-65;
+  GN.appendChild(mk("rect",{x:bx,y:by,width:bw,height:bh,rx:7,
+    fill:"#120a00",stroke:"#fbbf24","stroke-width":"1","stroke-dasharray":"4 3"}));
+  GN.appendChild(tx("⚠ EML/InP缺貨  交期排至2027後",{
+    x:bx+bw/2,y:by+bh/2+1,"text-anchor":"middle","dominant-baseline":"central",
+    "font-size":"10.5","font-family":"Noto Sans TC,sans-serif",fill:"#fbbf24"}));
+}
+
+// ═══════════════════════════════════════════════════════════════
+// DRAW BRANCHES & LEAVES
+// ═══════════════════════════════════════════════════════════════
+DATA.forEach((br, bi) => {
+  const {by, color} = br;
+
+  // Root → branch curve
+  GL.appendChild(curve(X_ROOT, ROOT_Y, X_BRANCH - BR_W/2, by, color, 1.6, .45));
+
+  // Branch node
+  const bg = mk("g",{cursor:"pointer"});
+  bg.id = `bn-${bi}`;
+  bg.classList.add("bn");
+
+  bg.appendChild(mk("rect",{
+    x: X_BRANCH - BR_W/2, y: by - BR_H/2,
+    width: BR_W, height: BR_H, rx: 10,
+    fill:"#040c1a", stroke:color, "stroke-width":"1.4",
+    filter:"url(#gf-br)", class:"bn-rect"
+  }));
+
+  // Count badge
+  bg.appendChild(mk("rect",{
+    x:X_BRANCH+BR_W/2-24,y:by-BR_H/2-1,
+    width:20,height:16,rx:4,fill:color,opacity:".9"}));
+  bg.appendChild(tx(`${br.leaves.length}`,{
+    x:X_BRANCH+BR_W/2-14,y:by-BR_H/2+7,
+    "text-anchor":"middle","dominant-baseline":"central",
+    "font-size":"9","font-weight":"700",
+    "font-family":"Noto Sans TC,sans-serif",fill:"#020d1c"}));
+
+  // Chevron
+  const chev = tx("▸",{
+    x:X_BRANCH-BR_W/2+10,y:by,
+    "dominant-baseline":"central","font-size":"11",
+    "font-family":"monospace",fill:color,opacity:".8"});
+  chev.id = `cv-${bi}`;
+  bg.appendChild(chev);
+
+  // Label (split on two spaces)
+  const parts = br.label.split("  ");
+  parts.forEach((t,i) => {
+    bg.appendChild(tx(t,{
+      x: X_BRANCH, y: by + (i-(parts.length-1)/2)*15+1,
+      "text-anchor":"middle","dominant-baseline":"central",
+      "font-size":"11","font-weight":"600",
+      "font-family":"Noto Sans TC,sans-serif",fill:color}));
+  });
+
+  bg.addEventListener("click", () => toggleBranch(bi));
+  GN.appendChild(bg);
+
+  // ── Leaves ─────────────────────────────────────────────────
+  br.leaves.forEach((lf, li) => {
+    const {ly} = lf;
+    const st = ST[lf.t] || ST.us;
+
+    // Spoke
+    const sp = mk("line",{
+      x1: X_BRANCH+BR_W/2, y1: by,
+      x2: X_LEAF-LF_W/2,   y2: ly,
+      stroke:color,"stroke-width":"1.1"});
+    sp.classList.add("sp","closed");
+    sp.id = `sp-${bi}-${li}`;
+    GL.appendChild(sp);
+
+    // Leaf group
+    const lg = mk("g",{cursor:"pointer"});
+    lg.classList.add("lu","closed");
+    lg.id = `lf-${bi}-${li}`;
+    // transform-origin = branch center so it animates from there
+    lg.style.transformOrigin = `${X_BRANCH}px ${by}px`;
+
+    // Box
+    lg.appendChild(mk("rect",{
+      x: X_LEAF-LF_W/2, y: ly-LF_H/2,
+      width:LF_W, height:LF_H, rx:9,
+      fill:st.fill, stroke:st.stroke, "stroke-width":"1.1",
+      filter:`url(#gf-${lf.t})`}));
+
+    // Connector dot
+    lg.appendChild(mk("circle",{
+      cx:X_LEAF-LF_W/2-2,cy:ly,r:4.5,
+      fill:st.stroke,filter:`url(#gf-${lf.t})`}));
+
+    // Name
+    lg.appendChild(tx(lf.n.replace("  "," "),{
+      x:X_LEAF-LF_W/2+10, y:ly-7,
+      "dominant-baseline":"central","text-anchor":"start",
+      "font-size":"11","font-weight":"700",
+      "font-family":"Noto Sans TC,sans-serif",fill:st.text}));
+
+    // Sub
+    lg.appendChild(tx(lf.s,{
+      x:X_LEAF-LF_W/2+10, y:ly+9,
+      "dominant-baseline":"central","text-anchor":"start",
+      "font-size":"9","font-family":"Noto Sans TC,sans-serif",
+      fill:"#475569"}));
+
+    lg.addEventListener("click", e => { e.stopPropagation(); openPanel(lf,st); });
+    lg.addEventListener("mouseenter", () =>
+      lg.querySelector("rect").setAttribute("stroke-width","2.2"));
+    lg.addEventListener("mouseleave", () =>
+      lg.querySelector("rect").setAttribute("stroke-width","1.1"));
+    GN.appendChild(lg);
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════
+// TOGGLE
+// ═══════════════════════════════════════════════════════════════
+function toggleBranch(bi) {
+  const br = DATA[bi];
+  br.open = !br.open;
+  document.getElementById(`cv-${bi}`).textContent = br.open ? "▾" : "▸";
+  br.leaves.forEach((_,li) => {
+    const lfEl = document.getElementById(`lf-${bi}-${li}`);
+    const spEl = document.getElementById(`sp-${bi}-${li}`);
+    const cls  = br.open ? ["open","closed"] : ["closed","open"];
+    lfEl.classList.add(cls[0]); lfEl.classList.remove(cls[1]);
+    spEl.classList.add(cls[0]); spEl.classList.remove(cls[1]);
+  });
+}
+function expandAll()   { DATA.forEach((_,i) => { if(!DATA[i].open) toggleBranch(i); }); }
+function collapseAll() { DATA.forEach((_,i) => { if(DATA[i].open)  toggleBranch(i); }); }
+
+// ═══════════════════════════════════════════════════════════════
+// PANEL
+// ═══════════════════════════════════════════════════════════════
+const panel = document.getElementById("panel");
+function openPanel(lf, st) {
+  document.getElementById("pt").innerHTML =
+    `<span style="color:${st.text}">${lf.n.replace("  "," ")}</span>
+     <span style="display:inline-block;font-size:9px;padding:2px 6px;border-radius:4px;
+       background:${st.tagBg};color:#fff;margin-left:6px;font-weight:700;vertical-align:middle">
+       ${st.tag}</span>`;
+  document.getElementById("pb").innerHTML =
+    `<div class="p-tag" style="background:${st.tagBg};color:#fff">${st.tag}</div>
+     <div class="p-sub">${lf.d.sub}</div>
+     ${lf.d.items.map(r =>
+       `<div class="p-row">
+         <div class="p-dot" style="background:${st.stroke}"></div>
+         <div class="p-txt"><b>${r.k}</b>　${r.v}</div>
+       </div>`).join("")}`;
+  panel.classList.add("on");
+}
+function closePanel() { panel.classList.remove("on"); }
+svg.addEventListener("click", () => { if (panel.classList.contains("on")) closePanel(); });
+
+// ═══════════════════════════════════════════════════════════════
+// PAN / ZOOM
+// ═══════════════════════════════════════════════════════════════
+let sc = Math.min(W/CANVAS_W, H/CANVAS_H) * .9;
+let tx_ = (W - CANVAS_W*sc) / 2;
+let ty_ = (H - CANVAS_H*sc) / 2;
+let drag = false, lmx = 0, lmy = 0;
+
+function applyT() {
+  wrap.setAttribute("transform", `translate(${tx_},${ty_}) scale(${sc})`);
+}
+applyT();
+
+function resetView() {
+  sc  = Math.min(W/CANVAS_W, H/CANVAS_H) * .9;
+  tx_ = (W - CANVAS_W*sc) / 2;
+  ty_ = (H - CANVAS_H*sc) / 2;
+  applyT();
+}
+
+svg.addEventListener("wheel", ev => {
+  if (panel.classList.contains("on") && ev.clientX > W-320) return;
+  ev.preventDefault();
+  const f = ev.deltaY < 0 ? 1.11 : .91;
+  tx_ = ev.clientX - (ev.clientX - tx_)*f;
+  ty_ = ev.clientY - (ev.clientY - ty_)*f;
+  sc  = Math.max(.08, Math.min(6, sc*f));
+  applyT();
+}, {passive:false});
+
+svg.addEventListener("mousedown", ev => {
+  if (ev.target.closest("[cursor='pointer']")) return;
+  drag=true; lmx=ev.clientX; lmy=ev.clientY;
+});
+window.addEventListener("mousemove", ev => {
+  if (!drag) return;
+  tx_+=ev.clientX-lmx; ty_+=ev.clientY-lmy;
+  lmx=ev.clientX; lmy=ev.clientY; applyT();
+});
+window.addEventListener("mouseup", () => drag=false);
+
+// Touch
+let lastD=0;
+svg.addEventListener("touchstart", ev => {
+  if (ev.touches.length===1){drag=true;lmx=ev.touches[0].clientX;lmy=ev.touches[0].clientY;}
+  if (ev.touches.length===2) lastD=Math.hypot(
+    ev.touches[0].clientX-ev.touches[1].clientX,
+    ev.touches[0].clientY-ev.touches[1].clientY);
+},{passive:true});
+svg.addEventListener("touchmove", ev => {
+  ev.preventDefault();
+  if (ev.touches.length===1&&drag){
+    tx_+=ev.touches[0].clientX-lmx; ty_+=ev.touches[0].clientY-lmy;
+    lmx=ev.touches[0].clientX; lmy=ev.touches[0].clientY; applyT();
+  }
+  if (ev.touches.length===2){
+    const d=Math.hypot(ev.touches[0].clientX-ev.touches[1].clientX,
+                       ev.touches[0].clientY-ev.touches[1].clientY);
+    const f=d/lastD;
+    const mx=(ev.touches[0].clientX+ev.touches[1].clientX)/2;
+    const my=(ev.touches[0].clientY+ev.touches[1].clientY)/2;
+    tx_=mx-(mx-tx_)*f; ty_=my-(my-ty_)*f;
+    sc=Math.max(.08,Math.min(6,sc*f)); lastD=d; applyT();
+  }
+},{passive:false});
+window.addEventListener("touchend", () => drag=false);
+
+// ═══════════════════════════════════════════════════════════════
+// BACKGROUND ANIMATION
+// ═══════════════════════════════════════════════════════════════
+const bgc = document.getElementById("bg");
+bgc.width = W; bgc.height = H;
+const ctx = bgc.getContext("2d");
+const fibers = Array.from({length:14}, () => ({
+  x:Math.random()*W, y:Math.random()*H,
+  vx:(Math.random()-.5)*.4, vy:(Math.random()-.5)*.4,
+  len:80+Math.random()*140,
+  hue:[200,140,270,30,180][Math.floor(Math.random()*5)],
+  a:.08+Math.random()*.2
+}));
+(function anim(){
+  ctx.clearRect(0,0,W,H);
+  fibers.forEach(f => {
+    f.x+=f.vx; f.y+=f.vy;
+    if(f.x<0||f.x>W)f.vx*=-1;
+    if(f.y<0||f.y>H)f.vy*=-1;
+    const ang=Math.atan2(f.vy,f.vx);
+    const ex=f.x+f.len*Math.cos(ang), ey=f.y+f.len*Math.sin(ang);
+    const g2=ctx.createLinearGradient(f.x,f.y,ex,ey);
+    g2.addColorStop(0,`hsla(${f.hue},70%,55%,0)`);
+    g2.addColorStop(.5,`hsla(${f.hue},70%,55%,${f.a})`);
+    g2.addColorStop(1,`hsla(${f.hue},70%,55%,0)`);
+    ctx.beginPath(); ctx.moveTo(f.x,f.y); ctx.lineTo(ex,ey);
+    ctx.strokeStyle=g2; ctx.lineWidth=1.2; ctx.stroke();
+  });
+  requestAnimationFrame(anim);
+})();
+
+// ═══════════════════════════════════════════════════════════════
+// DOWNLOAD
+// ═══════════════════════════════════════════════════════════════
+function dlSVG() {
+  expandAll();
+  setTimeout(() => {
+    const clone = svg.cloneNode(true);
+    clone.setAttribute("xmlns", NS);
+    const st = document.createElementNS(NS,"style");
+    st.textContent = `.lu,.sp{opacity:1;transform:none}text{font-family:sans-serif}`;
+    clone.insertBefore(st, clone.firstChild);
+    const blob = new Blob([clone.outerHTML],{type:"image/svg+xml"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "光通訊AI供應鏈心智圖2026.svg";
+    a.click();
+  }, 450);
+}
+</script>
+</body>
+</html>
